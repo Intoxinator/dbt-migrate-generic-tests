@@ -11,34 +11,29 @@ This tool migrates dbt generic test YAML configurations to use the new 'argument
 - Access to your dbt project directory structure
 
 ### Python Dependencies
-This script uses only Python standard library modules:
-- `os` - File system operations
-- `sys` - System-specific parameters and functions  
-- `pathlib` - Object-oriented filesystem paths
-- `re` - Regular expression operations
-- `yaml` - YAML parsing and generation
+This script relies on Python's standard library along with `pyyaml`:
 - `argparse` - Command-line argument parsing
 - `dataclasses` - Data classes for Python 3.7+
+- `pathlib` - Object-oriented filesystem paths
+- `re` - Regular expression operations
 - `typing` - Type hints
+- `yaml` (PyYAML) - YAML parsing and generation
 
-**Note:** The `pyyaml` package may need to be installed if not already available:
+Install the external dependency with:
 ```bash
 pip install pyyaml
 ```
 
 ### dbt Project Structure
-The script expects a standard dbt project structure:
+The script expects a standard dbt project structure. When run, point it at the root directory that contains your `dbt_project.yml` and `models/` folder:
 ```
 your-dbt-project/
-â”œâ”€â”€ dbt_project.yml
-â”œâ”€â”€ models/
-â”‚   â”œâ”€â”€ *.yml
-â”‚   â”œâ”€â”€ *.yaml
-â”‚   â””â”€â”€ subdirectories/
-â”‚       â”œâ”€â”€ *.yml
-â”‚       â””â”€â”€ *.yaml
-â””â”€â”€ bin/
-    â””â”€â”€ migrate_test_arguments.py
+|-- dbt_project.yml
+|-- models/
+|   |-- *.yml
+|   `-- subdirectories/
+|       `-- *.yml
+`-- ...
 ```
 
 ## What This Tool Does
@@ -116,30 +111,30 @@ The script automatically handles migration for:
 ## Usage
 
 ### Installation
-1. Place `migrate_test_arguments.py` in the `bin/` directory of your dbt project
-2. Make it executable: `chmod +x bin/migrate_test_arguments.py`
+This repository already provides the CLI under `src/migrate_test_arguments.py`. Ensure the dependencies are installed (see above) and run the script with Python.
 
 ### Running the Migration
 
-**From your dbt project root directory:**
+Run the script by providing the path to the repository root that should be migrated:
 
 ```bash
 # Dry run to see what would be changed
-python bin/migrate_test_arguments.py --dry-run
+python src/migrate_test_arguments.py /path/to/dbt-project --dry-run
 
 # Run the actual migration
-python bin/migrate_test_arguments.py
+python src/migrate_test_arguments.py /path/to/dbt-project
 
-# Specify custom models directory
-python bin/migrate_test_arguments.py --models-dir path/to/models
+# Specify custom models directory (relative to the project root or absolute)
+python src/migrate_test_arguments.py /path/to/dbt-project --models-dir data/models
 
 # Get help
-python bin/migrate_test_arguments.py --help
+python src/migrate_test_arguments.py --help
 ```
 
 ### Command Line Options
 
-- `--models-dir`: Path to your models directory (default: "models")
+- `<project_root>` (positional): Path to the dbt repository root (defaults to current directory when omitted)
+- `--models-dir`: Path to your models directory relative to the repository root or an absolute path (defaults to `<project_root>/models`)
 - `--dry-run`: Preview changes without modifying files
 - `--help`: Show help message
 
@@ -170,15 +165,15 @@ Migrations performed:
 2. **Backup Recommendation**: Always commit your changes to git before running
 3. **Selective Migration**: Only migrates tests that actually need updating
 4. **Error Handling**: Continues processing other files if one file fails
-5. **Validation**: Checks for proper dbt project structure
+5. **Validation**: Verifies the repository root and models directory before running
 
 ## Troubleshooting
 
 ### Common Issues
 
 **"Models directory not found"**
-- Ensure you're running the script from your dbt project root
-- Check the `--models-dir` path is correct
+- Ensure the repository path you pass matches your dbt project root
+- Check that the `--models-dir` path exists relative to that root (or provide an absolute path)
 
 **"Could not parse YAML"**
 - Fix any YAML syntax errors in the reported file
