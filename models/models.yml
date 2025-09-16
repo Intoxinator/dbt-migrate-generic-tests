@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: orders
+    description: Order data from our e-commerce platform
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "total_amount = subtotal + tax_amount"
+          config:
+            severity: warn
+    columns:
+      - name: order_id
+        description: Primary key for orders
+        tests:
+          - unique
+          - not_null
+      - name: status
+        description: Current status of the order
+        tests:
+          - accepted_values:
+              values: ['placed', 'shipped', 'completed', 'returned']
+              config:
+                where: "created_at > '2020-01-01'"
+      - name: customer_id
+        description: Foreign key to customers table
+        tests:
+          - relationships:
+              to: ref('customers')
+              field: id
+          - not_null
+
+sources:
+  - name: raw_orders
+    tables:
+      - name: orders_table
+        columns:
+          - name: id
+            tests:
+              - dbt_utils.unique_combination_of_columns:
+                  combination_of_columns: ['id', 'created_date']
+                  config:
+                    severity: error
