@@ -6,7 +6,7 @@ This script migrates dbt generic test YAML configurations to use the new 'argume
 addressing the deprecation of top-level arguments in generic tests.
 
 Usage:
-    python migrate_test_arguments.py
+    python migrate_test_arguments.py /path/to/repository [--models-dir custom/models/path]
 
 The script will:
 1. Find all .yml and .yaml files in the models directory and subdirectories
@@ -332,9 +332,15 @@ def main():
         description="Migrate dbt generic test arguments to use the new 'arguments' key format"
     )
     parser.add_argument(
+        "project_root",
+        nargs="?",
+        default=".",
+        help="Path to the root of the dbt repository to migrate (default: current directory)"
+    )
+    parser.add_argument(
         "--models-dir",
-        default="models",
-        help="Path to the models directory (default: models)"
+        default=None,
+        help="Path to the models directory relative to the repository root or absolute (default: <project_root>/models)"
     )
     parser.add_argument(
         "--dry-run",
@@ -344,13 +350,29 @@ def main():
 
     args = parser.parse_args()
 
-    # Validate that we're in a dbt project directory
-    if not Path(args.models_dir).exists():
-        print(f"Error: Models directory '{args.models_dir}' not found")
-        print("Make sure you're running this script from your dbt project root")
+    project_root = Path(args.project_root).expanduser()
+
+    if not project_root.exists():
+        print(f"Error: Repository root '{project_root}' not found")
         sys.exit(1)
 
-    migrator = GenericTestMigrator(models_dir=args.models_dir, dry_run=args.dry_run)
+    project_root = project_root.resolve()
+
+    if args.models_dir:
+        models_dir = Path(args.models_dir).expanduser()
+        if not models_dir.is_absolute():
+            models_dir = project_root / models_dir
+    else:
+        models_dir = project_root / "models"
+
+    models_dir = models_dir.resolve()
+
+    if not models_dir.exists():
+        print(f"Error: Models directory '{models_dir}' not found")
+        print("Provide the repository root or models directory path that contains your dbt models")
+        sys.exit(1)
+
+    migrator = GenericTestMigrator(models_dir=models_dir, dry_run=args.dry_run)
     migrator.run_migration()
 
 

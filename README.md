@@ -40,83 +40,16 @@ pip install pytest pyyaml
 
 ## Usage
 
-1. **Copy the migration script to your dbt repo:**
-   ```bash
-   cp migrate_test_arguments.py /path/to/your-dbt-project/bin/
-   ```
-2. **Run a dry-run first (recommended):**
-   ```bash
-   python bin/migrate_test_arguments.py --dry-run
-   ```
-3. **Review the output, then migrate for real:**
-   ```bash
-   python bin/migrate_test_arguments.py
-   ```
+Run the migration script and provide the path to the root of the dbt repository you want to update:
 
-##### Optional Arguments
-
-- `--models-dir [path]` – specify an alternate models folder
-- `--dry-run` – only preview changes, do not write files
-- See full help: `python bin/migrate_test_arguments.py --help`
-
-## Example
-
-**Before (deprecated):**
-```yaml
-tests:
-  - accepted_values:
-      values: ['active', 'inactive']
-      config:
-        where: "created_at > '2020-01-01'"
-```
-
-**After (migrated):**
-```yaml
-tests:
-  - accepted_values:
-      arguments:
-        values: ['active', 'inactive']
-      config:
-        where: "created_at > '2020-01-01'"
-```
-
-## Automated Testing
-
-This repo includes a complete pytest suite:
-- Ensures both dry-run and in-place migration produces correct results
-- Validates the migration handles built-in and plugin tests
-
-**Run tests with:**
 ```bash
-pytest
+python src/migrate_test_arguments.py /path/to/dbt-project
 ```
-Tests live in `tests/test_migration.py`.
 
-## Documentation
+By default the script inspects the `models` directory inside the specified repository root. You can point it at a different models directory (relative to the repository root or an absolute path) with `--models-dir`:
 
-See [requirements.md](requirements.md) for full technical documentation, usage notes, error handling, and recovery strategies.
+```bash
+python src/migrate_test_arguments.py /path/to/dbt-project --models-dir data_warehouse/models
+```
 
-## Safety Notes
-
-- Always commit to git before running the migration!
-- The script is read/write and will update your YAML files in-place (unless in `--dry-run`)
-- Handles parse errors gracefully and skips malformed YAML files
-
-## License
-
-MIT
-
-## Maintainers
-
-- Tony Johnson (primary author)
-- Contributions welcomed!
-
-## Feedback & Issues
-
-Open an issue in GitHub or [contact](mailto:youremail@domain.com) for feature requests and bug reports.
-
-***
-
-This README provides context for data engineering teams, highlights migration rationale, and gives everything needed for setup, use, and validation.
-
-Sources
+Add `--dry-run` to preview the changes without rewriting your files.
