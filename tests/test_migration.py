@@ -66,10 +66,10 @@ def find_test(test_list, test_name):
 @pytest.mark.parametrize("dry_run", [True, False])
 def test_migration_script(test_project, dry_run):
     # Adjust the script path if needed
-    script_path = Path("bin") / "migrate_test_arguments.py"
+    script_path = Path("src") / "migrate_test_arguments.py"
     models_dir = Path(test_project) / "models"
     file_path = models_dir / "test_schema.yml"
-    assert script_path.exists(), "Migration script not found in bin/ directory"
+    assert script_path.exists(), "Migration script not found in src/ directory"
 
     args = [sys.executable, str(script_path), "--models-dir", str(models_dir)]
     if dry_run:
